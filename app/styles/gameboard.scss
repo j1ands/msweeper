@@ -1,0 +1,14 @@
+.game-table {
+  height: 500px;
+  width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.game-table, .game-table td {
+  border-color: #000 !important;
+}
+
+.mine {
+  background-color: #000;
+}

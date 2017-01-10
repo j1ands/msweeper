@@ -1,0 +1,7 @@
+  <table class="table table-bordered game-table" ng-click="handleGameClick($event)">
+    <tr ng-repeat="row in getTableSize(tableSize) track by $index" ng-init="rowIndex = $index">
+      <td ng-repeat="column in getTableSize(tableSize) track by $index" ng-init="colIndex = $index" 
+        data-row="{{rowIndex}}" data-col="{{colIndex}}">
+      </td>
+    </tr>
+  </table>
