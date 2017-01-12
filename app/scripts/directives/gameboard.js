@@ -37,7 +37,7 @@ angular.module('msweeperApp')
             boardGenerator.generate(scope.tableSize, clickEvent);
             scope.gameState.clicked = true;
           } else {
-            boardGenerator.handleTileSelection(scope.tableSize, clickEvent);
+            boardGenerator.handleTileSelection(scope.tableSize, clickEvent.target);
           }
         }
       }

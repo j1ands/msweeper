@@ -69,7 +69,7 @@ angular.module('msweeperApp')
         }
         return false;
       });
-      handleTileSelection(size, click, true);
+      handleFirstSelection(size, click);
     }
 
     function checkMine(size, position, option) {
@@ -91,26 +91,56 @@ angular.module('msweeperApp')
       }
     }
 
-    function handleTileSelection(size, click, first) {
-      var squareCalc = (size * +click.target.dataset.row) + (+click.target.dataset.col);
+    function handleTileSelection(size, square, first) {
+      var squareCalc = (size * +square.dataset.row) + (+square.dataset.col);
       clickedBoxes[squareCalc] = true;
       if(!first && board.mines.indexOf(squareCalc) > -1) {
-        click.target.className = 'mine';
+        square.className = 'mine';
       } else {
         if(squareCalc < size) {
-          click.target.innerHTML = checkMine(size, squareCalc, 'above').toString();
+          square.innerHTML = checkMine(size, squareCalc, 'above').toString();
         } else if(squareCalc % size === 0) {
-          click.target.innerHTML = checkMine(size, squareCalc, 'left').toString();
+          square.innerHTML = checkMine(size, squareCalc, 'left').toString();
         } else if((squareCalc - size + 1) % size === 0) {
-          click.target.innerHTML = checkMine(size, squareCalc, 'right').toString();
+          square.innerHTML = checkMine(size, squareCalc, 'right').toString();
         } else if(squareCalc >= (Math.pow(size, 2) - size)) {
-          click.target.innerHTML = checkMine(size, squareCalc, 'below').toString();
+          square.innerHTML = checkMine(size, squareCalc, 'below').toString();
         } else {
-          click.target.innerHTML = checkMine(size, squareCalc, 'none').toString();
+          square.innerHTML = checkMine(size, squareCalc, 'none').toString();
         }
       }      
       if(Object.keys(markedBoxes).length + Object.keys(clickedBoxes).length === board.size) {
         alert('success!');
+      }
+    }
+
+    function handleFirstSelection(size, click) {
+      handleTileSelection(size, click.target, true);
+      var square = click.target;
+      var table = click.currentTarget;
+      var rows = $(table).find('tr');
+      var cells = {};
+      angular.forEach(rows, function(cols, row) { cells[row] = cols.children; });
+      revealTiles(square, cells, size);
+    }
+
+    function revealTiles(square, cells, size) {
+      //use cells
+      if(square.innerHTML === '0') {
+        if(+square.dataset.col < (size / 2)) {
+          if(+square.dataset.row < (size / 2)) {
+            while(square.innerHTML === '0' && +square.dataset.row < size - 1) {
+              square.dataset.row = (+square.dataset.row + 1).toString();
+              handleTileSelection(size, square, false);
+            }
+            // while
+            while(square.innerHTML !== '0' || square.className !== 'mine' || +square.dataset.col < size - 1) {
+              square.dataset.col = (+square.dataset.col + 1).toString();
+              handleTileSelection(size, square, false);
+            }
+
+          }
+        }
       }
     }
 
