@@ -48,12 +48,33 @@ angular.module('msweeperApp')
     };
 
     function generateMines(size) {
-      var min = Math.floor(size/2);
-      var numOfMines = Math.floor(Math.random() * (size + 1 - min) + min);
+      var numOfMines = Math.floor(Math.random() * (size) + size / 2);
       board.mines = [];
-      var numOfTiles = Math.pow(size, 2);
+      var mineSettings = {
+        row: {
+          0: {
+            skip: 1,
+            rowDiff: 0
+          }
+        },
+        col: {
+          0 : {
+            skip: 2,
+            rowDiff: 1 
+          }
+        }
+      };
+      mineSettings[row][size-1] = {
+        skip: 4,
+        rowDiff: 1
+      };
+      mineSettings[col][size-1] = {
+        skip: 3,
+        rowDiff: 1
+      };
+
       for(var i = 0; i < numOfMines; i++) {
-        board.mines.push(Math.floor(Math.random() * numOfTiles));
+        board.mines.push((size * Math.floor(Math.random() * size)) + (Math.floor(Math.random() * size)));
       }
     }
 
@@ -96,81 +117,27 @@ angular.module('msweeperApp')
       clickedBoxes[squareCalc] = true;
       if(!first && board.mines.indexOf(squareCalc) > -1) {
         square.className = 'mine';
-      } else {
-        if(squareCalc < size) {
-          square.innerHTML = checkMine(size, squareCalc, 'above').toString();
-        } else if(squareCalc % size === 0) {
-          square.innerHTML = checkMine(size, squareCalc, 'left').toString();
-        } else if((squareCalc - size + 1) % size === 0) {
-          square.innerHTML = checkMine(size, squareCalc, 'right').toString();
-        } else if(squareCalc >= (Math.pow(size, 2) - size)) {
-          square.innerHTML = checkMine(size, squareCalc, 'below').toString();
-        } else {
-          square.innerHTML = checkMine(size, squareCalc, 'none').toString();
-        }
+      }  else {
+        square.innerHTML = squarePosition(size, squareCalc);
       }      
       if(Object.keys(markedBoxes).length + Object.keys(clickedBoxes).length === board.size) {
         alert('success!');
       }
     }
 
-    // function handleFirstSelection(size, click) {
-    //   handleTileSelection(size, click.target, true);
-    //   var square = click.target;
-    //   var table = click.currentTarget;
-    //   var rows = $(table).find('tr');
-    //   var cells = {};
-    //   angular.forEach(rows, function(cols, row) { cells[row] = cols.children; });
-    //   revealTiles(square, cells, size);
-    // }
-
-    // function revealTiles(square, cells, size) {
-    //   //use cells
-    //   var newSquare = square;
-    //   var squareVal = square.innerHTML;
-    //   // var difference = square.innerHTML === '0' ? 1 : -1;
-    //   // if(square.innerHTML === '0') {
-    //   if(+newSquare.dataset.col < (size / 2)) {
-    //     if(+newSquare.dataset.row < (size / 2)) {
-    //       while(newSquare.innerHTML === squareVal || +newSquare.dataset.row < size - 1 || newSquare.className !== 'mine') {
-    //         newSquare = cells[+newSquare.dataset.row + 1][newSquare.dataset.col];
-    //         handleTileSelection(size, newSquare, false);
-    //       }
-    //       newSquare.innerHTML = '';
-    //       newSquare.className = '';
-    //       newSquare = cells[+square.dataset.row - 1][square.dataset.col];
-
-    //       while()
-    //         while(newSquare.innerHTML !== squareVal || +newSquare.dataset.col < size - 1 || newSquare.className !== 'mine') {
-    //           newSquare = cells[newSquare.dataset.row][+newSquare.dataset.col + 1];
-    //           handleTileSelection(size, newSquare, false);
-    //         }
-    //         newSquare.innerHTML = '';
-    //         newSquare.className = '';
-    //         newSquare = cells[newSquare.dataset.row][+newSquare.dataset.col - 1];
-    //         while(newSquare.innerHTML === squareVal || +newSquare.dataset.row > 0 || newSquare.className !== 'mine') {
-    //           newSquare = cells[+newSquare.dataset.row - 1][newSquare.dataset.col];
-    //           handleTileSelection(size, newSquare, false);
-    //         }
-    //         newSquare.innerHTML = '';
-    //         newSquare.className = '';
-    //         newSquare = cells[+square.dataset.row + 1][square.dataset.col];
-    //     // else if row is >= size / 2
-    //     } else {
-
-    //     }
-    //       // while
-    //       // while(square.innerHTML !== '0' || square.className !== 'mine' || +square.dataset.col < size - 1) {
-    //         square.dataset.col = (+square.dataset.col + 1).toString();
-    //         handleTileSelection(size, square, false);
-    //       // }
-
-    //   // else if col is >= size / 2
-    //   } else {
-
-    //   }
-    //   // }
-    // }
+    function squarePosition(size, squareCalc) {
+        if(squareCalc < size) {
+          return checkMine(size, squareCalc, 'above').toString();
+        } else if(squareCalc % size === 0) {
+          return checkMine(size, squareCalc, 'left').toString();
+        } else if((squareCalc - size + 1) % size === 0) {
+          return checkMine(size, squareCalc, 'right').toString();
+        } else if(squareCalc >= (Math.pow(size, 2) - size)) {
+          return checkMine(size, squareCalc, 'below').toString();
+        } else {
+          return checkMine(size, squareCalc, 'none').toString();
+        }
+    }
 
     window.oncontextmenu = function(click) {
       click.target.className = 'marked';
