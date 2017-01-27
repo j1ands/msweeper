@@ -10,10 +10,14 @@
 angular.module('msweeperApp')
   .factory('boardGenerator', function () {
 
-    var board = {};
+    var board = {
+      mines: [],
+      size: null
+    };
     var mineChecks = {};
     var clickedBoxes = {};
     var markedBoxes = {};
+    var minePlacer = {};
     var service = {
       generate: generate,
       handleTileSelection: handleTileSelection,
@@ -47,50 +51,104 @@ angular.module('msweeperApp')
       }
     };
 
-    function generateMines(size) {
+    minePlacer = {
+      1: function(size, row, col) {
+        board.mines.push(
+          (size * Math.floor(Math.random() * row)) + Math.floor(Math.random() * size)
+        );
+      },
+      2: function(size, row, col, topDiff, bottomDiff) {
+        board.mines.push(
+          (size * Math.floor((Math.random() * bottomDiff) + row - topDiff)) + Math.floor(Math.random() * col)
+        );
+      },
+      3: function(size, row, col, topDiff, bottomDiff) {
+        board.mines.push(
+          (size * Math.floor((Math.random() * bottomDiff) + row - topDiff)) + Math.floor((Math.random() * (size - col)) + col + 2)
+        );
+      },
+      4: function(size, row, col) {
+        board.mines.push(
+          (size * Math.floor((Math.random() * (size - row)) + row + 2)) + Math.floor(Math.random() * size)
+        );
+      }
+    }
+
+    function generateMines(size, click) {
       var numOfMines = Math.floor(Math.random() * (size) + size / 2);
-      board.mines = [];
       var mineSettings = {
         row: {
           0: {
             skip: 1,
-            rowDiff: 0
+            topDiff: 0,
+            bottomDiff: 3
           }
         },
         col: {
           0 : {
             skip: 2,
-            rowDiff: 1 
+            topDiff: 1 ,
+            bottomDiff: 3
           }
         }
       };
-      mineSettings[row][size-1] = {
+      mineSettings.row[size-1] = {
         skip: 4,
-        rowDiff: 1
+        topDiff: 1,
+        bottomDiff: 2
       };
-      mineSettings[col][size-1] = {
+      mineSettings.col[size-1] = {
         skip: 3,
-        rowDiff: 1
+        topDiff: 1,
+        bottomDiff: 3
       };
 
-      for(var i = 0; i < numOfMines; i++) {
-        board.mines.push((size * Math.floor(Math.random() * size)) + (Math.floor(Math.random() * size)));
+      var row = +click.target.dataset.row;
+      var col = +click.target.dataset.col;
+
+      var runSettings = {
+        skip: [],
+        topDiff: 1,
+        bottomDiff: 3,
+        count: 0
+      };
+
+      (function() {
+        if(mineSettings.row[row]) {
+          runSettings.skip.push(mineSettings.row[row].skip);
+          runSettings.topDiff = runSettings.topDiff ? mineSettings.row[row].topDiff : runSettings.topDiff;
+          runSettings.bottomDiff = runSettings.bottomDiff !== 2 ? mineSettings.row[row].bottomDiff : runSettings.bottomDiff;
+        }
+        if(mineSettings.col[col]) {
+          runSettings.skip.push(mineSettings.col[col].skip);
+        }
+      });
+
+      while(board.mines.length < numOfMines) {
+        var location = (runSettings.count % 4) + 1;
+        if(runSettings.skip.indexOf(location) < 0) {
+          minePlacer[location](size, row, col, runSettings.topDiff, runSettings.bottomDiff);
+        }
+        runSettings.count++;
       }
     }
 
     function generate(size, click) {
-      generateMines(size);
-      var squareCalc = (size * +click.target.dataset.row) + (+click.target.dataset.col);
-      var uniqueMines = {};
       board.size = Math.pow(size, 2);
-      board.mines = board.mines.filter(function(mine) {
-        if(!uniqueMines[mine] && mine !== squareCalc) {
-          uniqueMines[mine] = true;
-          return true;
-        }
-        return false;
+      generateMines(size, click);
+      console.log(click);
+      var table = $(click.currentTarget);
+      var rows = table.find('tr');
+      rows.each(function(rInd, row) {
+        var tiles = $(row).find('td');
+        $(tiles).each(function(cInd, tile) {
+          var squareCalc = (size * rInd) + cInd;
+          if(board.mines.indexOf(squareCalc) > -1) {
+            tile.className = 'mine'
+          }
+        });
       });
-      handleTileSelection(size, click.target, true);
+      // handleTileSelection(size, click.target, true);
     }
 
     function checkMine(size, position, option) {
